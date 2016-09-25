@@ -13,9 +13,7 @@ public class Main {
 	public static void runTests(int num) {
 		for(int i = 1; i <= num; i++) {
 			try {
-				System.out.println("================================");
-				System.out.println("============ Test " + i + " ============");
-				System.out.println("================================");
+				System.out.println("Test " + i + " =========================");
 				String testName = "programTest" + i + "_AST";
 				Method testMethod = Main.class.getMethod(testName);
 				Program p = (Program) testMethod.invoke(null);
@@ -25,6 +23,7 @@ public class Main {
 			} catch(NoSuchMethodException
 			        | IllegalAccessException 
 			        | InvocationTargetException e) {}
+			System.out.println();
 		}
 	}
 	

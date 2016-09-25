@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project name="Robol" default="jar">
+	
+	<target name="clean" description="Delete all generated files">
+		<delete dir="bin"/>
+		<delete file="Robol.jar"/>
+	</target>
+
+	<target name="compile" description="Compile the program">
+		<mkdir dir="bin"/>
+		<javac srcdir="src" destdir="bin" includeantruntime="false"/>
+	</target>
+	
+	<target name="jar" depends="compile" description="Make the JAR File">
+		<jar destfile="Robol.jar">
+			<fileset dir="bin" includes="**/*.class"/>
+			<manifest>
+				<attribute name="Main-Class" value="robol.Main"/>
+			</manifest>
+		</jar>
+	</target>
+		
+</project>

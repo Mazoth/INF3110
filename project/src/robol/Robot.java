@@ -19,6 +19,7 @@ public class Robot {
 	private ArrayList<VarDecl> declList = new ArrayList<VarDecl>();
 	
 	public Robot(Grid grid, StartStmt start) {
+		this.idNum = ++count;
 		this.grid = grid;
 		this.start = start;
 	}
@@ -41,14 +42,15 @@ public class Robot {
 	
 	public String toString() {
 		return "Robot " + idNum + " is at position (" + x + "," + y + ")"
-		       + "on " + grid.toString();
+		       + " on " + grid.toString();
 	}
 	
 	public void moveByAbsPos(int x, int y) {
 		if(grid.isOutOfBound(x, y)) {
 			this.x = -1;
 			this.y = -1;
-			throw new RobolError("Robot " + idNum + " fell out of the grid!");
+			String m = "Robot " + idNum + " fell out of " + grid.toString();
+			throw new RobolError(m);
 		}
 		this.x = x;
 		this.y = y;
