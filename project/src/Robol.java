@@ -1,3 +1,0 @@
-interface Robol {
-	void interpret();
-}
