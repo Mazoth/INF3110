@@ -2,12 +2,14 @@ package expression;
 import java.util.HashMap;
 import robol.RobolError;
 
-public class ArithExp extends Expression {
-	Operator opr;    // the arithmetic operator
-	Expression expL; // expression on the left
-	Expression expR; // expression on the right
+/* <arith-expr> ::= <expr> {{+|-|*}} <expr> */
+
+public class ArithExpr extends Expression {
+	private Operator opr;    // the arithmetic operator
+	private Expression expL; // expression on the left
+	private Expression expR; // expression on the right
 	
-	public ArithExp(Operator opr, Expression expL, Expression expR) {
+	public ArithExpr(Operator opr, Expression expL, Expression expR) {
 		this.opr = opr;
 		this.expL = expL;
 		this.expR = expR;
@@ -17,16 +19,15 @@ public class ArithExp extends Expression {
 	public int evaluate(HashMap<String, Integer> vars) {
 		int res = 0; // result
 		switch(opr) {
-		case additionOpr:
+		case PLUS_OPR:
 			res = expL.evaluate(vars) + expR.evaluate(vars); break;
-		case subtractionOpr:
+		case MINUS_OPR:
 			res = expL.evaluate(vars) - expR.evaluate(vars); break;
-		case multiplyOpr:
+		case MULT_OPR:
 			res = expL.evaluate(vars) * expR.evaluate(vars); break;
 		default:
-			throw new RobolError("Invalid operator for arithmetic expression");
+			throw new RobolError("Invalid operator for arithmetic expression!");
 		}
 		return res;
 	}
-
 }

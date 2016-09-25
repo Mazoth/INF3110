@@ -1,10 +1,10 @@
 package expression;
 import java.util.HashMap;
 
-public class Number extends Expression {
-	int num;
+public class NumExpr extends Expression {
+	private int num;
 	
-	public Number(int num) {
+	public NumExpr(int num) {
 		this.num = num;
 	}
 	

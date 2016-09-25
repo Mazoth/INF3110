@@ -3,7 +3,7 @@ import java.util.HashMap;
 import robol.RobolError;
 
 public class Identifier extends Expression {
-	String id;
+	private String id;
 	
 	public Identifier(String id) {
 		this.id = id;
@@ -13,7 +13,7 @@ public class Identifier extends Expression {
 	public int evaluate(HashMap<String,Integer> vars) {
 		Integer value = vars.get(id);
 		if(value == null) { 
-			throw new RobolError("Variable '" + id + "' not declared!");
+			throw new RobolError("No variable found for name \"" + id + "\"!");
 		}
 		return value.intValue();
 	}
