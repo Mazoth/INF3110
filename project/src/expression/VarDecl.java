@@ -13,6 +13,7 @@ public class VarDecl {
 	}
 	
 	public void interpret(HashMap<String,Integer> vars) {
+		// Put the new variable into the global variable list
 		vars.put(id, new Integer(expr.evaluate(vars)));
 	}
 }

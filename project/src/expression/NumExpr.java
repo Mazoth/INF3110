@@ -10,6 +10,7 @@ public class NumExpr extends Expression {
 	
 	@Override
 	public int evaluate(HashMap<String,Integer> vars) {
+		// Note that the param "vars" is actually not needed here
 		return this.num;
 	}
 }

@@ -11,7 +11,7 @@ public class Identifier extends Expression {
 	
 	@Override
 	public int evaluate(HashMap<String,Integer> vars) {
-		Integer value = vars.get(id);
+		Integer value = vars.get(id); // find the value of the variable
 		if(value == null) { 
 			throw new RobolError("No variable found for name \"" + id + "\"!");
 		}

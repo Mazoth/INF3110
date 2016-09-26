@@ -16,9 +16,10 @@ public class AssignStmt extends Statement {
 	}
 	
 	public void interpret(Robot r, HashMap<String,Integer> vars) {
+		// Note that robot param is actually not needed for this method
 		if(! vars.containsKey(id)) {
 			throw new RobolError("No variable found for name \"" + id + "\"!");
 		}
-		vars.put(id, expr.evaluate(vars));
+		vars.put(id, expr.evaluate(vars)); // update value to the variable
 	}
 }

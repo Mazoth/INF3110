@@ -17,6 +17,10 @@ public class BoolExpr extends Expression {
 	
 	@Override
 	public int evaluate(HashMap<String, Integer> vars) {
+		// Type checking: Both of the expressions must NOT be of type Boolean
+		if(expL instanceof BoolExpr || expR instanceof BoolExpr) {
+			throw new RobolError("Invalid types for Boolean expression!");
+		}
 		int res = 0; // this is either TRUE (res=1) or FALSE (res=0)
 		switch(opr) {
 		case GT_OPR:

@@ -11,6 +11,12 @@ public class Main {
 	}
 	
 	public static void runTests(int num) {
+		/*
+		 * The "reflect" package is used here in order to loop over all methods
+		 * that have the test cases. This not only makes it easier to write and
+		 * add more test cases, but also allows us to reuse the same code in 
+		 * the loop for all the test cases 
+		 */
 		for(int i = 1; i <= num; i++) {
 			try {
 				System.out.println("Test " + i + " =========================");

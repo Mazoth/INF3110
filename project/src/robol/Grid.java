@@ -19,6 +19,6 @@ class Grid {
 	}
 	
 	public String toString() {
-		return "Grid " + idNum;
+		return "Grid " + idNum + " (" + width + "," + height + ")";
 	}
 }

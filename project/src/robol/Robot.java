@@ -45,6 +45,22 @@ public class Robot {
 		       + " on " + grid.toString();
 	}
 	
+	public void interpret() {
+		// Interpret all variable declarations
+		for(VarDecl decl : declList) decl.interpret(varList);
+		
+		// Interpret the start statement
+		start.interpret(this, varList);
+		
+		// Interpret all statements in the statement list
+		for(Statement stmt : stmtList) stmt.interpret(this, varList);
+	}
+	
+	/**
+	 * Moves this robot using the "absolute" position coordinates.
+	 * @param x final horizontal position of the robot after the move.
+	 * @param y final vertical position of the robot after the move.
+	 */
 	public void moveByAbsPos(int x, int y) {
 		if(grid.isOutOfBound(x, y)) {
 			this.x = -1;
@@ -56,22 +72,16 @@ public class Robot {
 		this.y = y;
 	}
 	
+	/**
+	 * Move this robot using the "relative" direction vector.
+	 * @param x number of horizontal steps, positive(East) or negative(West) 
+	 * @param y number of vertical steps, positive(North) or negative(South)
+	 */
 	public void moveByRelPos(int x, int y) {
 		if(this.x >= 0 && this.y >= 0) {
 			x += this.x;
 			y += this.y;
 		}
 		moveByAbsPos(x,y);
-	}
-	
-	public void interpret() {
-		// Interpret all variable declarations
-		for(VarDecl decl : declList) decl.interpret(varList);
-		
-		// Interpret the start statement
-		start.interpret(this, varList);
-		
-		// Interpret all statements in the statement list
-		for(Statement stmt : stmtList) stmt.interpret(this, varList);
 	}
 }
