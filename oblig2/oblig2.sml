@@ -1,3 +1,6 @@
+
+
+
 datatype direction = …
 datatype grid = Size of int * int;
 
@@ -20,6 +23,8 @@ fun evalExp(BiggerThan(e1, e2), decls) =
 	if evalExp(e1, decls) > evalExp(e2, decls) then 1 else 0
 …
 exception OutOfBounds;
+
+(*dfdfj*)
 
 fun interpret ( Program(Size(x, y),
 	Robot(decls, Start(xpos, ypos),
