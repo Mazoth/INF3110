@@ -1,0 +1,1 @@
+fun mulall(v, l) = map (fn x => x * v) l;
