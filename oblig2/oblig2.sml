@@ -5,59 +5,52 @@
 *)
 exception OutOfBounds;
 
-datatype Expr
+(* Datatype declarations *)
+datatype expr
 	= Number of int
 	| Identifier of string
-	| ArithExpr of ArithExpr
-	| BoolExpr of BoolExpr
-and ArithExpr
-	= Add of Expr * Expr
-	| Subtract of Expr * Expr
-	| Multiply of Expr * Expr
-and BoolExpr
-	= BiggerThan of Expr * Expr
-	| LessThan of Expr * Expr
-	| EqualTo of Expr * Expr; 
-
-datatype Stmt
+	| Add of expr * expr
+	| Subtract of expr * expr
+	| Multiply of expr * expr
+	| BoolExpr of boolean
+and boolean
+	= BiggerThan of expr * expr
+	| LessThan of expr * expr
+	| EqualTo of expr * expr;
+datatype direction = NORTH | SOUTH | EAST | WEST;
+datatype stmt
 	= Stop
-	| Move of Direction * Expr
-	| Assignment of string * Expr
-	| WhileStmt of BoolExpr * Stmt list
-and Direction = NORTH | SOUTH | EAST | WEST;
+	| Move of direction * expr
+	| Assignment of string * expr
+	| WhileStmt of boolean * stmt list
+datatype var = VarDecl of string * expr;
+datatype start = Start of expr * expr;
+datatype grid = Size of int * int;
+datatype robot = Robot of var list * start * stmt list;
+datatype program = Program of grid * robot;
 
-datatype VarDecl = VarDecl of string * Expr;
-datatype Start = Start of Expr * Expr;
-datatype Grid = Size of int * int;
-datatype Robot = Robot of VarDecl list * Start * Stmt list;
-datatype Program = Program of Grid * Robot;
+(* Evaluate the expressions *)
+fun evalExpr(Number n, decls : var list) = n
+|	evalExpr(Identifier name, decls) = ~1
+|	evalExpr(Add(e1,e2), decls)
+		= evalExpr(e1, decls) + evalExpr(e2, decls)
+|	evalExpr(Subtract(e1,e2), decls)
+		= evalExpr(e1, decls) - evalExpr(e2, decls)
+|	evalExpr(Multiply(e1,e2), decls)
+		= evalExpr(e1, decls) * evalExpr(e2, decls)
+|	evalExpr(BoolExpr(BiggerThan(e1,e2)), decls)
+		= if evalExpr(e1, decls) > evalExpr(e2, decls) then 1 else 0
+|	evalExpr(BoolExpr(LessThan(e1,e2)), decls)
+		= if evalExpr(e1, decls) < evalExpr(e2, decls) then 1 else 0
+|	evalExpr(BoolExpr(EqualTo(e1,e2)), decls)
+		= if evalExpr(e1, decls) = evalExpr(e2, decls) then 1 else 0
 
-
-fun evalExpr(Number(num), decls) = 1
-|	evalExpr(BiggerThan(e1, e2), decls) = 
-		if evalExpr(e1, decls) > evalExpr(e2, decls) then 1 else 0;
-(* |	evalExpr(LessThan(e1, e2), decls) =
-		if evalExpr(e1, decls) < evalExpr(e2, decls) then 1 else 0
-|	evalExpr(EqualTo(e1, e2), decls) =
-		if evalExpr(e1, decls) = evalExpr(e2, decls) then 1 else 0
-|	evalExpr(Add(e1, e2), decls) =
-		evalExpr(e1, decls) + evalExpr(e2, decls)
-|	evalExpr(Subtract(e1, e2), decls) =
-		evalExpr(e1, decls) - evalExpr(e2, decls)
-|	evalExpr(Multiply(e1, e2), decls) =
-		evalExpr(e1, decls) * evalExpr(e2, decls)
-|	evalExpr(Identifier(id), decls) = 1
-*)
-		
 
 (*
 fun evalExp(BiggerThan(e1, e2), decls) =
 	if evalExp(e1, decls) > evalExp(e2, decls) then 1 else 0
-…
-
-
-
+...
 fun interpret ( Program(Size(x, y),
 	Robot(decls, Start(xpos, ypos),
-		Move(direction, exp) :: stmtlst))) = …
+		Move(direction, exp) :: stmtlst))) = ...
 *)
