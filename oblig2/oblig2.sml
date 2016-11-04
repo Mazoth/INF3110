@@ -49,18 +49,9 @@ type state    = grid * variable list * position
  * =====================================================================*)
  
 fun addVar(Var(id,value), varList) =
-    let val curList = List.filter (fn(k,v) =>) 
+    let val curList = List.filter (fn (k,v) => k <> id) varList
+    in Var(id,value)::curList end;
 
-
-
-fun setVar((id, value), varList) : variable list =
-    let fun filter(nil) = raise VariableNotFound
-        |   filter((k,v)::varList)
-            = if (k = id) then varList else filter(varList)
-    in (id, value)::filter(varList)
-    end;
-
-(* Return a value stored in a variable *)
 fun findVar(id, nil) = raise VariableNotFound
 |   findVar(id, Var(k,v)::varList) =
         if id = k then v else findVar(id, varList);
