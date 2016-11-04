@@ -1,11 +1,12 @@
 (**
- * UiO INF3110 - Autumn 2016
- * Assignment 2
+ * UiO Autumn 2016 
+ * INF3110 - Assignment 2
  * @author: syhd
+ * The code uses spaces instead of tabs
  *)
 
-exception OutOfBounds;
-exception VariableNotFound;
+exception OutOfBounds;      (* will be handled     *)
+exception VariableNotFound; (* will NOT be handled *)
 
 
 (* =======================================================================
@@ -14,159 +15,194 @@ exception VariableNotFound;
 
 datatype direction = NORTH | SOUTH | EAST | WEST;
  
-datatype expr
-	= Number of int
-	| Identifier of string
-	| Add of expr * expr
-	| Subtract of expr * expr
-	| Multiply of expr * expr
-	| BoolExpr of boolean
+datatype expression
+    = Num  of int
+    | ID   of string
+    | Add  of expression * expression
+    | Sub  of expression * expression
+    | Mul  of expression * expression
+    | Bool of boolean
 and boolean
-	= MoreThan of expr * expr
-	| LessThan of expr * expr
-	| EqualTo of expr * expr;
-	
+    = More  of expression * expression
+    | Less  of expression * expression
+    | Equal of expression * expression
+;
 datatype statement
-	= StopStmt
-	| MoveStmt of direction * expr
-	| AssignStmt of string * expr
-	| WhileStmt of boolean * statement list
-
-datatype start = Start of expr * expr;
-datatype declaration = VarDecl of string * expr;
-datatype grid = Size of int * int;
-datatype robot = Robot of declaration list * start * statement list;
-datatype program = Program of grid * robot;
+    = Stop
+    | Move   of direction * expression
+    | While  of boolean * statement list
+    | Assign of string * expression
+;
+datatype variable    = Var of string * int;
+datatype declaration = Decl of string * expression;
+datatype start       = Start of expression * expression;
+datatype board       = Size of int * int;
+datatype robot       = Robot of declaration list * start * statement list;
+datatype program     = Program of board * robot;
 
 type position = int * int;
-type variable = string * int
-type state = grid * variable list * position
+type state    = grid * variable list * position
 
 
 (* =======================================================================
  * Declaring functions to work on variable list
  * =====================================================================*)
  
-(* Add a variable into a variable list *)
-fun addVar(var : variable, vars : variable list) = var::vars
+fun addVar(Var(id,value), varList) =
+    let val curList = List.filter (fn(k,v) =>) 
 
-(* Assign a new value to a variable *)
+
+
 fun setVar((id, value), varList) : variable list =
-	let fun filter(nil) = raise VariableNotFound
-		|	filter((k,v)::varList) 
-			= if (k = id) then varList else filter(varList)
-	in (id, value)::filter(varList)
-	end;
+    let fun filter(nil) = raise VariableNotFound
+        |   filter((k,v)::varList)
+            = if (k = id) then varList else filter(varList)
+    in (id, value)::filter(varList)
+    end;
 
 (* Return a value stored in a variable *)
-fun getVar(id, nil) = raise VariableNotFound
-|	getVar(id, (k,v)::varList : variable list) =
-		if id = k then v else getVar(id, varList);
+fun findVar(id, nil) = raise VariableNotFound
+|   findVar(id, Var(k,v)::varList) =
+        if id = k then v else findVar(id, varList);
 
-	
+    
 (* =======================================================================
- * Declaring functions to work on expressions
- * =====================================================================*)	
+ * Defining functions to work on expressions
+ * =====================================================================*)  
 
-fun evalExpr(varList, Number(n)) = n
-|	evalExpr(varList, Identifier(id)) = getVar(id, varList)
-|	evalExpr(varList, Add(e1,e2))
-		= evalExpr(varList, e1) + evalExpr(varList, e2)
-|	evalExpr(varList, Subtract(e1,e2))
-		= evalExpr(varList, e1) - evalExpr(varList, e2)
-|	evalExpr(varList, Multiply(e1,e2))
-		= evalExpr(varList, e1) * evalExpr(varList, e2)
-|	evalExpr(varList, BoolExpr(MoreThan(e1,e2)))
-		= if evalExpr(varList, e1) > evalExpr(varList, e2) then 1 else 0
-|	evalExpr(varList, BoolExpr(LessThan(e1,e2)))
-		= if evalExpr(varList, e1) < evalExpr(varList, e2) then 1 else 0
-|	evalExpr(varList, BoolExpr(EqualTo(e1,e2)))
-		= if evalExpr(varList, e1) = evalExpr(varList, e2) then 1 else 0
-
-
-(* =======================================================================
- * Declaring functions to work on variable declarations
- * =====================================================================*)	
- 
-(* Make a variable list with initial values from a declaration list *)
-fun evalDecls(declList : declaration list) : variable list =
-	let fun iter(nil, varList) = varList
-		|	iter(VarDecl(id,exp)::declList, varList)
-			= iter(declList, ((id,(evalExpr(varList,exp)))::varList))
-	in iter(declList, nil)
-	end;		
+fun evalExpr(varList, Num(n)) = n
+|   evalExpr(varList, ID(id)) = findVar(id, varList)
+|   evalExpr(varList, Add(e1,e2))
+        = evalExpr(varList, e1) + evalExpr(varList, e2)
+|   evalExpr(varList, Sub(e1,e2))
+        = evalExpr(varList, e1) - evalExpr(varList, e2)
+|   evalExpr(varList, Mul(e1,e2))
+        = evalExpr(varList, e1) * evalExpr(varList, e2)
+|   evalExpr(varList, Bool(More(e1,e2)))
+        = if evalExpr(varList, e1) > evalExpr(varList, e2) then 1 else 0
+|   evalExpr(varList, Bool(Less(e1,e2)))
+        = if evalExpr(varList, e1) < evalExpr(varList, e2) then 1 else 0
+|   evalExpr(varList, Bool(Equal(e1,e2)))
+        = if evalExpr(varList, e1) = evalExpr(varList, e2) then 1 else 0
 
 
 (* =======================================================================
- * Declaring functions to work on statements
- * =====================================================================*)		
- 
-fun move((Size(x,y), varList, curPos) : state, relPos : position) : state =
-	if #1(curPos) + #1(relPos) < x andalso #2(curPos) + #2(relPos) < y
-	then (Size(x,y), varList, (#1(curPos) + #1(relPos), #2(curPos) + #2(relPos)))
-	else raise OutOfBounds;
+ * Defining functions that work on variable declarations and statements
+ * =====================================================================*)      
 
-fun evalStmts(s : state, nil) = s
-|	evalStmts((Size(x,y), varList, (xpos, ypos)), StopStmt::_) = 
-		(print ("The result is (" ^ Int.toString(xpos)
-			^ "," ^ Int.toString(ypos) ^ ")\n");
-		(Size(x,y), varList, (xpos, ypos)))
-|	evalStmts((Size(x,y), varList, pos), MoveStmt(dir,steps)::stmtList) = 
-		evalStmts(
-			move((Size(x,y), varList, pos),
-				if dir = NORTH then (0, evalExpr(varList,steps)) else 
-				if dir = SOUTH then (0, ~(evalExpr(varList,steps))) else
-				if dir = EAST then (evalExpr(varList,steps), 0)
-				else (~(evalExpr(varList,steps)), 0)),
-			stmtList)
-|	evalStmts((Size(x,y), varList, pos), AssignStmt(id,exp)::stmtList)
-		= evalStmts((Size(x,y), setVar((id, evalExpr(varList, exp)), varList), pos), stmtList)
-|	evalStmts(s : state, WhileStmt(cond,stmts)::stmtList) =
-		let 
-			fun evalWhile((Size(x,y), varList, pos) : state) : state = 
-				if evalExpr(varList, BoolExpr(cond)) = 1
-				then evalWhile(evalStmts((Size(x,y), varList, pos), stmts))
-				else (Size(x,y), varList, pos)
-		in evalStmts(evalWhile(s), stmtList)
-		end;
+fun evalDecls(nil, varList) : variable list = varList
+|   evalDecls(Decl(id,expr)::decls, varList)
+    = evalDecls(decls, addVar(Var(id,evalExpr(varList,expr)),varList))
+    
+fun move((Size(xlim,ylim),varList,(x,y)):state, xsteps, ysteps) : state =
+    let val newX = x + xsteps
+        val newY = y + ysteps
+    in  if newX >= xlim orelse newY >= ylim then raise OutOfBounds
+        else (Size(xlim,ylim), varList, (newX,newY)
+    end;
 
+fun evalStmts(s, nil) : state = s
+|   evalStmts(s, Stop::_) = s
+|   evalStmts(s, Move(dir,steps)::stmtList)
+        = evalStmts(evalMove(s,Move(dir,steps)), stmtList)
+|   evalStmts(s, Assign(id,expr)::stmtList)
+        = evalStmts(evalAssign(s,Assign(id,expr)), stmtList)
+|   evalStmts(s, While(cond,stmts)::stmtList)
+        = evalStmts(evalWhile(s,While(cond,expr)), stmtList)
+and evalMove((grid,varList,pos):state, Move(dir,expr)) : state =
+    let val steps = evalExpr(varList,expr) in
+        if dir = NORTH then move((grid,varList,pos), 0, steps)  else
+        if dir = SOUTH then move((grid,varList,pos), 0, ~steps) else
+        if dir = EAST  then move((grid,varList,pos), steps, 0)  else
+        if dir = WEST  then move((grid,varList,pos), ~steps, 0) end
+and evalAssign((grid,varList,pos):state, Assign(id,expr)) : state = 
+    let val curVal = findVar(id, varList)
+        val newVal = evalExpr(varList, expr)
+        val newLst = addVar(Variable(id,newVal), varList)
+    in (grid, newLst, pos) end
+and evalWhile((grid,varList,pos):state, While(cond,stmts)) : state =
+    let val s : state = (grid,varList,pos) in
+        if evalExpr(varList, Bool(cond)) = 0 then s
+        else evalWhile(evalStmts(s,stmts), While(cond,stmts))
+    end;
+        
 
 (* =======================================================================
- * Declaring interpret() function
- * =====================================================================*)	
+ * The interpret function
+ * =====================================================================*)  
 
-fun interpret(Program(Size(x,y), Robot(decls, Start(xpos, ypos), stmtList))) : unit =
-	let val varList = evalDecls(decls)
-	in (evalStmts(move((Size(x,y), varList, (0,0)), (evalExpr(varList,xpos), evalExpr(varList, ypos))),
-				stmtList); ())
-	end;
-	
-	
+fun interpret(Program(grid, Robot(decls,Start(x,y),stmtList))) : unit =
+    let val origin : position = (0,0) (* grid's origin *)
+        val varList = evalDecls(decls, [])
+        val xsteps = evalExpr(varList, x)
+        val ysteps = evalExpr(varList, y)
+        val startState = move((grid,varList,origin), xsteps, ysteps)
+        val finalState = evalStmts(stmtList, startState)
+        val finalXPos = Int.toString(#1(#3(finalState)))
+        val finalYPos = Int.toString(#2(#3(finalState)))
+    in print("Final position: (" ^ finalXPos ^ "," ^ finalYPos ^ ")\n") end
+    handle OutOfBounds => print("Robot has fallen out of the grid! \n");
+    
+    
 (* =======================================================================
- * Test functions
- * =====================================================================*)	
+ * Testing
+ * =====================================================================*)  
 
-val prog1 =
-	Program(Size(64,64),
-		Robot(
-			[],
-			Start(Number(23), Number(30)),
-			[MoveStmt(WEST, Number(15)), 
-			 MoveStmt(SOUTH, Number(15)),
-			 MoveStmt(EAST, Add(Number(2), Number(4))),
-			 MoveStmt(NORTH, Add(Number(10), Number(27))),
-			 StopStmt]));
-		
-val prog2 = 
-	Program(Size(64,64),
-		Robot(
-			[VarDecl("i", Number(5)),
-			 VarDecl("j", Number(3))],
-			Start(Number(23), Number(6)),
-			[MoveStmt(NORTH, Multiply(Number(3),Identifier("i"))),
-			 MoveStmt(EAST, Number(15)),
-			 MoveStmt(SOUTH, Number(4)),
-			 MoveStmt(WEST, Add(Add(Multiply(Number(2),Identifier("i")),
-									 Multiply(Number(3),Identifier("j"))),
-								 Number(5))),
-			StopStmt]));
+val prog1 = Program ( 
+    Size(64,64),
+    Robot(nil, (* no vardecls *)
+          Start(Num(23), Num(30)),
+          [Move(WEST, Num(15)),
+           Move(SOUTH, Num(15)),
+           Move(EAST, Add(Num(2), Num(4))),
+           Move(NORTH, Add(Num(10), Num(27))),
+           Stop]
+    )
+);
+val prog2 = Program (
+    Size(64,64),
+    Robot([Decl("i", Num(5)),
+           Decl("j", Num(3))],
+          Start(Num(23), Num(6)),
+          [Move(NORTH, Mul(Num(3),ID("i"))),
+           Move(EAST, Num(15)),
+           Move(SOUTH, Num(4)),
+           Move(WEST, Add(Add(Mul(Num(2),ID("i")),Mul(Num(3),ID("j"))),Num(5))),
+           Stop]
+    )
+);
+val prog3 = Program (
+    Size(64,64),
+    Robot([Decl("i", Num(5)),
+           Decl("j", Num(3))],
+          Start(Num(24), Num(6)),
+          [Move(NORTH, Mul(Num(3),ID("i")),
+           Move(WEST, Num(15)),
+           Move(EAST, Num(4)),
+           While(Bool(More(ID("j"),Num(0))),
+                 [Move(SOUTH, ID("j")),
+                  Assign("j", Sub(ID("j"),Num(1)))])
+           Stop]
+    )
+);
+val prog4 = Program (
+    Size(64,64),
+    Robot([Decl("j", Num(3))],
+          Start(Num(1), Num(1)),
+          [While(Bool(More(ID("j"),Num(0))),
+                 [Move(NORTH, ID("j"))]),
+           Stop]    
+    )
+);
+
+print("Test 1 ========================== \n");
+interpret(prog1);
+
+print("Test 2 ========================== \n");
+interpret(prog2);
+
+print("Test 3 ========================== \n");
+interpret(prog3);
+
+print("Test 4 ========================== \n");
+interpret(prog4);
