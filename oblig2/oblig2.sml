@@ -107,21 +107,66 @@ fun move((Size(x,y), varList, curPos) : state, relPos : position) : state =
 	else raise OutOfBounds;
 
 fun evalStmts(s : state, nil) = s
-|	evalStmts(s, Stop::stmtList) = s
-|	evalStmts(s, MoveStmt(dir,steps)) = 
-		if dir = NORTH then move(s, (0, steps)) else
-		if dir = SOUTH then move(s, (0, ~steps)) else
-		if dir = EAST then move(s, (steps, 0))
-		else move(s, (~steps, 0))
+|	evalStmts((Size(x,y), varList, (xpos, ypos)), StopStmt::_) = 
+		(print ("The result is (" ^ Int.toString(xpos)
+			^ "," ^ Int.toString(ypos) ^ ")\n");
+		(Size(x,y), varList, (xpos, ypos)))
+|	evalStmts((Size(x,y), varList, pos), MoveStmt(dir,steps)::stmtList) = 
+		evalStmts(
+			move((Size(x,y), varList, pos),
+				if dir = NORTH then (0, evalExpr(varList,steps)) else 
+				if dir = SOUTH then (0, ~(evalExpr(varList,steps))) else
+				if dir = EAST then (evalExpr(varList,steps), 0)
+				else (~(evalExpr(varList,steps)), 0)),
+			stmtList)
 |	evalStmts((Size(x,y), varList, pos), AssignStmt(id,exp)::stmtList)
-		= evalStmts((Size(x,y), setVar((id, evalExpr(varList, exp)), varList)), stmtList)
-|	evalStmts((Size(x,y), varList, pos), WhileStmt(cond,)::stmtList)
- 
- (* Intepret method --> return a tuple specifying final position *)
+		= evalStmts((Size(x,y), setVar((id, evalExpr(varList, exp)), varList), pos), stmtList)
+|	evalStmts(s : state, WhileStmt(cond,stmts)::stmtList) =
+		let 
+			fun evalWhile((Size(x,y), varList, pos) : state) : state = 
+				if evalExpr(varList, BoolExpr(cond)) = 1
+				then evalWhile(evalStmts((Size(x,y), varList, pos), stmts))
+				else (Size(x,y), varList, pos)
+		in evalStmts(evalWhile(s), stmtList)
+		end;
 
 
-(*
-fun interpret ( Program(Size(x, y),
-	Robot(decls, Start(xpos, ypos),
-		Move(direction, exp) :: stmtlst))) = ...
-*)
+(* =======================================================================
+ * Declaring interpret() function
+ * =====================================================================*)	
+
+fun interpret(Program(Size(x,y), Robot(decls, Start(xpos, ypos), stmtList))) : unit =
+	let val varList = evalDecls(decls)
+	in (evalStmts(move((Size(x,y), varList, (0,0)), (evalExpr(varList,xpos), evalExpr(varList, ypos))),
+				stmtList); ())
+	end;
+	
+	
+(* =======================================================================
+ * Test functions
+ * =====================================================================*)	
+
+val prog1 =
+	Program(Size(64,64),
+		Robot(
+			[],
+			Start(Number(23), Number(30)),
+			[MoveStmt(WEST, Number(15)), 
+			 MoveStmt(SOUTH, Number(15)),
+			 MoveStmt(EAST, Add(Number(2), Number(4))),
+			 MoveStmt(NORTH, Add(Number(10), Number(27))),
+			 StopStmt]));
+		
+val prog2 = 
+	Program(Size(64,64),
+		Robot(
+			[VarDecl("i", Number(5)),
+			 VarDecl("j", Number(3))],
+			Start(Number(23), Number(6)),
+			[MoveStmt(NORTH, Multiply(Number(3),Identifier("i"))),
+			 MoveStmt(EAST, Number(15)),
+			 MoveStmt(SOUTH, Number(4)),
+			 MoveStmt(WEST, Add(Add(Multiply(Number(2),Identifier("i")),
+									 Multiply(Number(3),Identifier("j"))),
+								 Number(5))),
+			StopStmt]));
