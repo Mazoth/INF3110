@@ -25,14 +25,14 @@ datatype expression
 and boolean
     = More  of expression * expression
     | Less  of expression * expression
-    | Equal of expression * expression
-;
+    | Equal of expression * expression;
+
 datatype statement
     = Stop
     | Move   of direction * expression
     | While  of boolean * statement list
-    | Assign of string * expression
-;
+    | Assign of string * expression;
+
 datatype variable    = Var of string * int;
 datatype declaration = Decl of string * expression;
 datatype start       = Start of expression * expression;
@@ -53,16 +53,15 @@ fun addVar(Var(id,value), varList) =
         |   filter(Var(k,v)::lst)
             = if k = id then filter(lst)
               else Var(k,v)::filter(lst)
-    in Var(id,value)::filter(varList) end
-;
+    in Var(id,value)::filter(varList) end;
+    
 fun findVar(id, nil) = raise VariableNotFound
 |   findVar(id, Var(k,v)::varList) =
-        if id = k then v else findVar(id, varList)
-;
+        if id = k then v else findVar(id, varList);
 
     
 (* =======================================================================
- * Defining functions to work on expressions
+ * Defining functions that work on expressions
  * =====================================================================*)  
 
 fun evalExpr(varList, Num(n)) = n
@@ -78,8 +77,8 @@ fun evalExpr(varList, Num(n)) = n
 |   evalExpr(varList, Bool(Less(e1,e2)))
         = if evalExpr(varList, e1) < evalExpr(varList, e2) then 1 else 0
 |   evalExpr(varList, Bool(Equal(e1,e2)))
-        = if evalExpr(varList, e1) = evalExpr(varList, e2) then 1 else 0
-;
+        = if evalExpr(varList, e1) = evalExpr(varList, e2) then 1 else 0;
+
 
 (* =======================================================================
  * Defining functions that work on variable declarations and statements
@@ -87,41 +86,40 @@ fun evalExpr(varList, Num(n)) = n
 
 fun evalDecls(nil, varList) : variable list = varList
 |   evalDecls(Decl(id,expr)::decls, varList)
-    = evalDecls(decls, addVar(Var(id,evalExpr(varList,expr)),varList))
-;    
+    = evalDecls(decls, addVar(Var(id,evalExpr(varList,expr)),varList));
+
 fun move((Size(xlim,ylim),varList,(x,y)):state, xsteps, ysteps) : state =
     let val newX = x + xsteps
         val newY = y + ysteps
     in  if newX >= xlim orelse newY >= ylim then raise OutOfBounds
         else (Size(xlim,ylim), varList, (newX,newY))
-    end
-;
+    end;
+
 fun evalStmts(s, nil) : state = s
 |   evalStmts(s, Stop::_) = s
 |   evalStmts(s, Move(dir,steps)::stmtList)
-        = evalStmts(evalMove(s,Move(dir,steps)), stmtList)
+        = evalStmts(evalMove(s,dir,steps), stmtList)
 |   evalStmts(s, Assign(id,expr)::stmtList)
-        = evalStmts(evalAssign(s,Assign(id,expr)), stmtList)
+        = evalStmts(evalAssign(s,id,expr), stmtList)
 |   evalStmts(s, While(cond,stmts)::stmtList)
-        = evalStmts(evalWhile(s,While(cond,stmts)), stmtList)
-and evalMove((grid,varList,pos):state, Move(dir,expr)) : state =
+        = evalStmts(evalWhile(s,cond,stmts), stmtList)
+and evalMove((grid,varList,pos):state, dir, expr) : state =
     let val steps = evalExpr(varList,expr) in
         if dir = NORTH then move((grid,varList,pos), 0, steps)  else
         if dir = SOUTH then move((grid,varList,pos), 0, ~steps) else
         if dir = EAST  then move((grid,varList,pos), steps, 0)
         else move((grid,varList,pos), ~steps, 0)
     end
-and evalAssign((grid,varList,pos):state, Assign(id,expr)) : state = 
+and evalAssign((grid,varList,pos):state, id, expr) : state = 
     let val curVal = findVar(id, varList)
         val newVal = evalExpr(varList, expr)
         val newLst = addVar(Var(id,newVal), varList)
     in (grid, newLst, pos) end
-and evalWhile((grid,varList,pos):state, While(cond,stmts)) : state =
+and evalWhile((grid,varList,pos):state, cond, stmts) : state =
     let val s : state = (grid,varList,pos) in
         if evalExpr(varList, Bool(cond)) = 0 then s
-        else evalWhile(evalStmts(s,stmts), While(cond,stmts))
-    end
-;
+        else evalWhile(evalStmts(s,stmts), cond, stmts)
+    end;
         
 
 (* =======================================================================
@@ -138,10 +136,9 @@ fun interpret(Program(grid, Robot(decls,Start(x,y),stmtList))) : unit =
         val finalXPos = Int.toString(#1(#3(finalState)))
         val finalYPos = Int.toString(#2(#3(finalState)))
     in print("Final position: (" ^ finalXPos ^ "," ^ finalYPos ^ ")\n") end
-    handle OutOfBounds => print("Robot has fallen out of the grid! \n")
-;
-    
-    
+    handle OutOfBounds => print("Robot has fallen out of the grid! \n");
+
+
 (* =======================================================================
  * Testing
  * =====================================================================*)  
@@ -193,7 +190,6 @@ val prog4 = Program (
     )
 );
 
-(* 
 print("Test 1 ========================== \n");
 interpret(prog1);
 
@@ -205,4 +201,3 @@ interpret(prog3);
 
 print("Test 4 ========================== \n");
 interpret(prog4);
-*)
